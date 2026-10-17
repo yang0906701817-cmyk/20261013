@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+
+  <!-- 設定響應式視窗，支援電腦、平板與手機。 -->
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
+  <!-- 設定網頁標題。 -->
+  <title>p5.js 簡易指令測驗</title>
+
+  <!-- 預先建立 Google Fonts 主站連線。 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+
+  <!-- 預先建立 Google Fonts 靜態檔案伺服器連線。 -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- 載入指定的 Google Fonts 字型。 -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200..900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- 設定頁面基本樣式。 -->
+  <style>
+    /* 讓所有元素採用容易控制的盒模型。 */
+    * {
+      box-sizing: border-box;
+    }
+
+    /* 設定整份文件的基本樣式。 */
+    html,
+    body {
+      /* 移除瀏覽器預設外距。 */
+      margin: 0;
+
+      /* 移除瀏覽器預設內距。 */
+      padding: 0;
+
+      /* 讓頁面填滿瀏覽器寬度。 */
+      width: 100%;
+
+      /* 讓頁面至少填滿瀏覽器高度。 */
+      min-height: 100%;
+
+      /* 設定網頁背景色。 */
+      background-color: #18212f;
+
+      /* 隱藏頁面捲軸。 */
+      overflow: hidden;
+
+      /* 設定中文預設字型。 */
+      font-family: "Noto Serif TC", serif;
+
+      /* 禁止觸控時選取文字。 */
+      user-select: none;
+
+      /* 防止觸控時產生瀏覽器捲動。 */
+      touch-action: none;
+    }
+
+    /* 設定 p5.js 畫布顯示方式。 */
+    canvas {
+      /* 讓畫布以區塊方式顯示。 */
+      display: block;
+
+      /* 讓畫布寬度填滿視窗。 */
+      width: 100vw;
+
+      /* 讓畫布高度填滿動態視窗高度。 */
+      height: 100dvh;
+    }
+  </style>
+</head>
+<body>
+  <!-- 載入 p5.js 程式庫。 -->
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.4/lib/p5.min.js"></script>
+
+  <!-- 載入測驗主要程式。 -->
+  <script src="sketch.js"></script>
+</body>
+</html>

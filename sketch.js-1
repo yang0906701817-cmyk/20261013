@@ -1,0 +1,845 @@
+// 儲存五題 p5.js 簡易指令測驗資料。
+const questions = [
+  // 設定第一題資料。
+  {
+    // 設定第一題題目。
+    question: "哪一個函式可以建立 p5.js 畫布？",
+
+    // 設定第一題的四個選項。
+    options: [
+      "createCanvas()",
+      "makeCanvas()",
+      "newCanvas()",
+      "canvasCreate()"
+    ],
+
+    // 設定第一題正確答案的索引值。
+    answer: 0
+  },
+
+  // 設定第二題資料。
+  {
+    // 設定第二題題目。
+    question: "哪一個函式可以設定畫布背景顏色？",
+
+    // 設定第二題的四個選項。
+    options: [
+      "bg()",
+      "background()",
+      "canvasColor()",
+      "fillBackground()"
+    ],
+
+    // 設定第二題正確答案的索引值。
+    answer: 1
+  },
+
+  // 設定第三題資料。
+  {
+    // 設定第三題題目。
+    question: "哪一個函式可以繪製橢圓形？",
+
+    // 設定第三題的四個選項。
+    options: [
+      "circle()",
+      "ellipse()",
+      "oval()",
+      "round()"
+    ],
+
+    // 設定第三題正確答案的索引值。
+    answer: 1
+  },
+
+  // 設定第四題資料。
+  {
+    // 設定第四題題目。
+    question: "p5.js 中通常只會執行一次的函式是哪一個？",
+
+    // 設定第四題的四個選項。
+    options: [
+      "draw()",
+      "loop()",
+      "setup()",
+      "start()"
+    ],
+
+    // 設定第四題正確答案的索引值。
+    answer: 2
+  },
+
+  // 設定第五題資料。
+  {
+    // 設定第五題題目。
+    question: "p5.js 中會持續重複執行的函式是哪一個？",
+
+    // 設定第五題的四個選項。
+    options: [
+      "repeat()",
+      "draw()",
+      "run()",
+      "animate()"
+    ],
+
+    // 設定第五題正確答案的索引值。
+    answer: 1
+  }
+];
+
+// 設定中文字型名稱。
+const chineseFont = "Noto Serif TC";
+
+// 設定英文與數字字型名稱。
+const latinFont = "Roboto Condensed";
+
+// 設定中文字型的備用字型。
+const chineseFallbackFont = "serif";
+
+// 設定英文與數字字型的備用字型。
+const latinFallbackFont = "Arial";
+
+// 儲存目前題目的索引值。
+let currentQuestion = 0;
+
+// 儲存使用者答對的題數。
+let score = 0;
+
+// 儲存使用者選擇的答案索引值。
+let selectedAnswer = -1;
+
+// 儲存目前題目是否已經答對。
+let questionCompleted = false;
+
+// 儲存目前題目是否答錯。
+let answerIsWrong = false;
+
+// 儲存正確選項動畫開始時間。
+let animationStartTime = 0;
+
+// 儲存所有選項的畫面區域。
+let optionAreas = [];
+
+// 儲存下一題按鈕的畫面區域。
+let nextButtonArea = null;
+
+// 儲存響應式版面設定。
+let layout = {};
+
+// 儲存 Google Fonts 是否已準備完成。
+let fontsReady = false;
+
+// 建立畫布並設定初始畫面。
+function setup() {
+  // 建立符合視窗大小的畫布。
+  createCanvas(windowWidth, windowHeight);
+
+  // 設定文字水平置中。
+  textAlign(CENTER, CENTER);
+
+  // 設定矩形從左上角開始繪製。
+  rectMode(CORNER);
+
+  // 關閉圖形外框。
+  noStroke();
+
+  // 計算響應式版面。
+  calculateLayout();
+
+  // 載入並確認 Google Fonts。
+  loadGoogleFonts();
+}
+
+// 載入 Google Fonts。
+function loadGoogleFonts() {
+  // 確認瀏覽器是否支援 document.fonts。
+  if (document.fonts && document.fonts.ready) {
+    // 等待網頁中的字型全部載入完成。
+    document.fonts.ready.then(() => {
+      // 明確要求瀏覽器載入中文字型。
+      return document.fonts.load(`400 24px "${chineseFont}"`);
+    }).then(() => {
+      // 明確要求瀏覽器載入英文字型。
+      return document.fonts.load(`400 24px "${latinFont}"`);
+    }).then(() => {
+      // 標記 Google Fonts 已經載入完成。
+      fontsReady = true;
+    }).catch(() => {
+      // 即使載入失敗，也讓程式繼續運作。
+      fontsReady = false;
+    });
+  } else {
+    // 不支援 Font Loading API 時直接使用備用字型。
+    fontsReady = false;
+  }
+}
+
+// 持續繪製測驗畫面。
+function draw() {
+  // 設定背景顏色。
+  background("#18212F");
+
+  // 重新計算響應式版面。
+  calculateLayout();
+
+  // 如果所有題目都已完成，顯示結果畫面。
+  if (currentQuestion >= questions.length) {
+    // 繪製結果畫面。
+    drawResult();
+
+    // 結束目前這一幀。
+    return;
+  }
+
+  // 繪製測驗標題。
+  drawHeader();
+
+  // 繪製目前題目。
+  drawQuestion();
+
+  // 繪製答案選項。
+  drawOptions();
+
+  // 繪製下一題按鈕。
+  drawNextButton();
+}
+
+// 計算響應式版面尺寸。
+function calculateLayout() {
+  // 取得目前畫布寬度。
+  const canvasWidth = width;
+
+  // 取得目前畫布高度。
+  const canvasHeight = height;
+
+  // 計算左右安全邊距。
+  const sidePadding = constrain(canvasWidth * 0.06, 16, 48);
+
+  // 計算內容最大寬度。
+  const contentWidth = min(canvasWidth - sidePadding * 2, 820);
+
+  // 判斷是否為窄版手機。
+  const isSmallScreen = canvasWidth < 480;
+
+  // 判斷是否為橫向畫面。
+  const isLandscape = canvasWidth > canvasHeight;
+
+  // 計算標題文字大小。
+  const titleSize = isSmallScreen
+    ? min(28, canvasWidth * 0.075)
+    : isLandscape
+      ? min(34, canvasWidth * 0.055)
+      : min(42, canvasWidth * 0.075);
+
+  // 計算一般文字大小。
+  const bodySize = isSmallScreen
+    ? min(18, canvasWidth * 0.048)
+    : min(23, canvasWidth * 0.04);
+
+  // 計算題目文字大小。
+  const questionSize = isSmallScreen
+    ? min(22, canvasWidth * 0.06)
+    : isLandscape
+      ? min(25, canvasWidth * 0.04)
+      : min(30, canvasWidth * 0.055);
+
+  // 計算選項高度。
+  const optionHeight = isSmallScreen ? 56 : 64;
+
+  // 計算選項起始位置。
+  const optionStartY = isLandscape
+    ? max(170, canvasHeight * 0.31)
+    : max(220, canvasHeight * 0.29);
+
+  // 計算選項間距。
+  const optionGap = isSmallScreen ? 12 : 16;
+
+  // 計算按鈕高度。
+  const buttonHeight = isSmallScreen ? 52 : 58;
+
+  // 計算按鈕寬度。
+  const buttonWidth = min(contentWidth, isSmallScreen ? 260 : 300);
+
+  // 計算四個選項的總高度。
+  const optionsTotalHeight =
+    optionHeight * 4 + optionGap * 3;
+
+  // 計算下一題按鈕的垂直位置。
+  const buttonY = isLandscape
+    ? min(
+        canvasHeight - buttonHeight - 16,
+        optionStartY + optionsTotalHeight + 22
+      )
+    : min(
+        canvasHeight - buttonHeight - 20,
+        optionStartY + optionsTotalHeight + 24
+      );
+
+  // 儲存響應式版面設定。
+  layout = {
+    // 儲存內容寬度。
+    contentWidth: contentWidth,
+
+    // 儲存標題字體大小。
+    titleSize: titleSize,
+
+    // 儲存一般字體大小。
+    bodySize: bodySize,
+
+    // 儲存題目字體大小。
+    questionSize: questionSize,
+
+    // 儲存選項高度。
+    optionHeight: optionHeight,
+
+    // 儲存選項起始位置。
+    optionStartY: optionStartY,
+
+    // 儲存選項間距。
+    optionGap: optionGap,
+
+    // 儲存按鈕寬度。
+    buttonWidth: buttonWidth,
+
+    // 儲存按鈕高度。
+    buttonHeight: buttonHeight,
+
+    // 儲存按鈕垂直位置。
+    buttonY: buttonY,
+
+    // 儲存是否為窄版畫面。
+    isSmallScreen: isSmallScreen,
+
+    // 儲存是否為橫向畫面。
+    isLandscape: isLandscape
+  };
+}
+
+// 設定中文字型。
+function setChineseFont(fontSizeValue) {
+  // 優先使用 Google Fonts 的 Noto Serif TC。
+  if (fontsReady) {
+    // 設定 Noto Serif TC。
+    textFont(chineseFont);
+  } else {
+    // Google Fonts 尚未完成時使用備用中文字型。
+    textFont(chineseFallbackFont);
+  }
+
+  // 設定文字大小。
+  textSize(fontSizeValue);
+}
+
+// 設定英文與數字字型。
+function setLatinFont(fontSizeValue) {
+  // 優先使用 Google Fonts 的 Roboto Condensed。
+  if (fontsReady) {
+    // 設定 Roboto Condensed。
+    textFont(latinFont);
+  } else {
+    // Google Fonts 尚未完成時使用備用英文字型。
+    textFont(latinFallbackFont);
+  }
+
+  // 設定文字大小。
+  textSize(fontSizeValue);
+}
+
+// 判斷字元是否為中文。
+function isChineseCharacter(character) {
+  // 使用 Unicode 範圍判斷中文與中文標點。
+  return /[\u3000-\u303F\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/.test(
+    character
+  );
+}
+
+// 計算單一字元的寬度。
+function measureCharacter(character, fontSizeValue) {
+  // 判斷字元是否為中文。
+  if (isChineseCharacter(character)) {
+    // 設定中文字型。
+    setChineseFont(fontSizeValue);
+  } else {
+    // 設定英文與數字字型。
+    setLatinFont(fontSizeValue);
+  }
+
+  // 回傳目前字元寬度。
+  return textWidth(character);
+}
+
+// 計算混合文字總寬度。
+function measureMixedText(textContent, fontSizeValue) {
+  // 建立文字總寬度。
+  let totalWidth = 0;
+
+  // 逐一處理文字中的每個字元。
+  for (let i = 0; i < textContent.length; i++) {
+    // 加上目前字元的寬度。
+    totalWidth += measureCharacter(textContent[i], fontSizeValue);
+  }
+
+  // 回傳混合文字總寬度。
+  return totalWidth;
+}
+
+// 逐字繪製中英文混合文字。
+function drawMixedText(textContent, centerX, centerY, fontSizeValue) {
+  // 計算整段文字總寬度。
+  const totalWidth = measureMixedText(textContent, fontSizeValue);
+
+  // 計算文字開始位置。
+  let currentX = centerX - totalWidth / 2;
+
+  // 逐一繪製每個字元。
+  for (let i = 0; i < textContent.length; i++) {
+    // 取得目前字元。
+    const character = textContent[i];
+
+    // 判斷目前字元是否為中文。
+    if (isChineseCharacter(character)) {
+      // 設定中文字型。
+      setChineseFont(fontSizeValue);
+    } else {
+      // 設定英數字型。
+      setLatinFont(fontSizeValue);
+    }
+
+    // 計算目前字元寬度。
+    const characterWidth = textWidth(character);
+
+    // 繪製目前字元。
+    text(
+      character,
+      currentX + characterWidth / 2,
+      centerY
+    );
+
+    // 移動到下一個字元的位置。
+    currentX += characterWidth;
+  }
+}
+
+// 在指定區域中繪製混合文字。
+function drawMixedTextInBox(
+  textContent,
+  centerX,
+  centerY,
+  boxWidth,
+  boxHeight,
+  fontSizeValue
+) {
+  // 計算文字寬度。
+  const textWidthValue = measureMixedText(textContent, fontSizeValue);
+
+  // 如果文字沒有超出區域，就直接繪製單行文字。
+  if (textWidthValue <= boxWidth) {
+    // 繪製單行文字。
+    drawMixedText(textContent, centerX, centerY, fontSizeValue);
+
+    // 結束函式。
+    return;
+  }
+
+  // 以空白分割文字。
+  const words = textContent.split(" ");
+
+  // 建立多行文字陣列。
+  const lines = [];
+
+  // 建立目前文字行。
+  let currentLine = "";
+
+  // 逐一處理每個文字片段。
+  for (let i = 0; i < words.length; i++) {
+    // 建立測試文字行。
+    const testLine =
+      currentLine.length === 0
+        ? words[i]
+        : currentLine + " " + words[i];
+
+    // 判斷測試文字行是否超出寬度。
+    if (measureMixedText(testLine, fontSizeValue) <= boxWidth) {
+      // 將文字加入目前文字行。
+      currentLine = testLine;
+    } else {
+      // 將目前文字行加入多行陣列。
+      lines.push(currentLine);
+
+      // 開始建立下一行。
+      currentLine = words[i];
+    }
+  }
+
+  // 將最後一行加入陣列。
+  if (currentLine.length > 0) {
+    // 儲存最後一行。
+    lines.push(currentLine);
+  }
+
+  // 計算行高。
+  const lineHeight = fontSizeValue * 1.35;
+
+  // 計算所有行的總高度。
+  const totalHeight = lines.length * lineHeight;
+
+  // 計算第一行的垂直位置。
+  let lineY = centerY - totalHeight / 2 + lineHeight / 2;
+
+  // 逐行繪製文字。
+  for (let i = 0; i < lines.length; i++) {
+    // 繪製目前文字行。
+    drawMixedText(lines[i], centerX, lineY, fontSizeValue);
+
+    // 移動到下一行。
+    lineY += lineHeight;
+  }
+}
+
+// 繪製測驗標題與進度。
+function drawHeader() {
+  // 設定標題文字顏色。
+  fill("#FFFFFF");
+
+  // 計算標題垂直位置。
+  const titleY = max(30, min(48, height * 0.075));
+
+  // 繪製測驗標題。
+  drawMixedText(
+    "p5.js 簡易指令測驗",
+    width / 2,
+    titleY,
+    layout.titleSize
+  );
+
+  // 設定進度文字顏色。
+  fill("#B7C7D9");
+
+  // 計算進度文字位置。
+  const progressY = titleY + layout.titleSize * 1.35;
+
+  // 繪製目前進度。
+  drawMixedText(
+    "第 " + (currentQuestion + 1) + " 題／共 " + questions.length + " 題",
+    width / 2,
+    progressY,
+    layout.bodySize
+  );
+}
+
+// 繪製題目內容。
+function drawQuestion() {
+  // 設定題目文字顏色。
+  fill("#FFFFFF");
+
+  // 計算題目垂直位置。
+  const questionY = layout.isSmallScreen ? 142 : 150;
+
+  // 計算題目區域高度。
+  const questionHeight = layout.isSmallScreen ? 88 : 100;
+
+  // 繪製題目文字。
+  drawMixedTextInBox(
+    questions[currentQuestion].question,
+    width / 2,
+    questionY,
+    layout.contentWidth,
+    questionHeight,
+    layout.questionSize
+  );
+}
+
+// 繪製四個選項。
+function drawOptions() {
+  // 清除上一幀的選項區域。
+  optionAreas = [];
+
+  // 計算選項水平位置。
+  const optionX = (width - layout.contentWidth) / 2;
+
+  // 逐一繪製四個選項。
+  for (let i = 0; i < 4; i++) {
+    // 計算選項垂直位置。
+    let optionY =
+      layout.optionStartY +
+      i * (layout.optionHeight + layout.optionGap);
+
+    // 判斷目前是否需要讓正確答案跳動。
+    if (answerIsWrong && i === questions[currentQuestion].answer) {
+      // 計算上下跳動的位移。
+      const bounceOffset =
+        sin((millis() - animationStartTime) * 0.012) * 9;
+
+      // 加入上下跳動位移。
+      optionY += bounceOffset;
+    }
+
+    // 儲存選項區域。
+    optionAreas.push({
+      // 設定選項水平位置。
+      x: optionX,
+
+      // 設定選項垂直位置。
+      y: optionY,
+
+      // 設定選項寬度。
+      width: layout.contentWidth,
+
+      // 設定選項高度。
+      height: layout.optionHeight
+    });
+
+    // 判斷是否為答錯後的正確選項。
+    if (answerIsWrong && i === questions[currentQuestion].answer) {
+      // 使用指定的粉紅色背景。
+      fill("#F7B1B0");
+    } else if (questionCompleted && i === selectedAnswer) {
+      // 答對後使用綠色背景。
+      fill("#79D6A5");
+    } else {
+      // 一般狀態使用深色背景。
+      fill("#2D4055");
+    }
+
+    // 繪製選項背景。
+    rect(
+      optionX,
+      optionY,
+      layout.contentWidth,
+      layout.optionHeight,
+      12
+    );
+
+    // 設定選項文字顏色。
+    if (answerIsWrong && i === questions[currentQuestion].answer) {
+      // 粉紅背景使用深色文字。
+      fill("#351D22");
+    } else {
+      // 其他狀態使用白色文字。
+      fill("#FFFFFF");
+    }
+
+    // 建立選項內容。
+    const optionText =
+      String.fromCharCode(65 + i) +
+      ". " +
+      questions[currentQuestion].options[i];
+
+    // 繪製混合字型選項文字。
+    drawMixedText(
+      optionText,
+      optionX + layout.contentWidth / 2,
+      optionY + layout.optionHeight / 2,
+      layout.bodySize
+    );
+  }
+}
+
+// 繪製下一題按鈕。
+function drawNextButton() {
+  // 如果尚未答對，不顯示按鈕。
+  if (!questionCompleted) {
+    // 清除按鈕區域。
+    nextButtonArea = null;
+
+    // 結束函式。
+    return;
+  }
+
+  // 計算按鈕水平位置。
+  const buttonX = (width - layout.buttonWidth) / 2;
+
+  // 建立按鈕區域。
+  nextButtonArea = {
+    // 儲存按鈕水平位置。
+    x: buttonX,
+
+    // 儲存按鈕垂直位置。
+    y: layout.buttonY,
+
+    // 儲存按鈕寬度。
+    width: layout.buttonWidth,
+
+    // 儲存按鈕高度。
+    height: layout.buttonHeight
+  };
+
+  // 設定按鈕背景顏色。
+  fill("#4B9FE1");
+
+  // 繪製按鈕背景。
+  rect(
+    buttonX,
+    layout.buttonY,
+    layout.buttonWidth,
+    layout.buttonHeight,
+    12
+  );
+
+  // 設定按鈕文字顏色。
+  fill("#FFFFFF");
+
+  // 設定按鈕文字內容。
+  const buttonText =
+    currentQuestion === questions.length - 1
+      ? "查看結果"
+      : "下一題";
+
+  // 繪製按鈕文字。
+  drawMixedText(
+    buttonText,
+    width / 2,
+    layout.buttonY + layout.buttonHeight / 2,
+    layout.bodySize
+  );
+}
+
+// 處理滑鼠點擊。
+function mousePressed() {
+  // 如果測驗已經完成，則不處理點擊。
+  if (currentQuestion >= questions.length) {
+    // 結束函式。
+    return;
+  }
+
+  // 如果題目已經答對，則檢查下一題按鈕。
+  if (questionCompleted) {
+    // 確認按鈕區域存在。
+    if (nextButtonArea !== null) {
+      // 判斷滑鼠是否位於按鈕內。
+      if (isPointInside(mouseX, mouseY, nextButtonArea)) {
+        // 前往下一題。
+        nextQuestion();
+      }
+    }
+
+    // 結束函式。
+    return;
+  }
+
+  // 逐一檢查答案選項。
+  for (let i = 0; i < optionAreas.length; i++) {
+    // 判斷滑鼠是否點擊目前選項。
+    if (isPointInside(mouseX, mouseY, optionAreas[i])) {
+      // 檢查答案。
+      checkAnswer(i);
+
+      // 結束迴圈。
+      return;
+    }
+  }
+}
+
+// 處理手機觸控事件。
+function touchStarted() {
+  // 使用滑鼠點擊的相同邏輯。
+  mousePressed();
+
+  // 防止手機瀏覽器產生捲動。
+  return false;
+}
+
+// 檢查使用者答案。
+function checkAnswer(answerIndex) {
+  // 儲存使用者選擇。
+  selectedAnswer = answerIndex;
+
+  // 判斷使用者是否答對。
+  if (answerIndex === questions[currentQuestion].answer) {
+    // 設定題目已完成。
+    questionCompleted = true;
+
+    // 清除答錯狀態。
+    answerIsWrong = false;
+
+    // 增加分數。
+    score++;
+  } else {
+    // 設定答錯狀態。
+    answerIsWrong = true;
+
+    // 記錄動畫開始時間。
+    animationStartTime = millis();
+  }
+}
+
+// 前往下一題。
+function nextQuestion() {
+  // 增加題目索引。
+  currentQuestion++;
+
+  // 清除使用者選擇。
+  selectedAnswer = -1;
+
+  // 清除題目完成狀態。
+  questionCompleted = false;
+
+  // 清除答錯狀態。
+  answerIsWrong = false;
+
+  // 清除下一題按鈕。
+  nextButtonArea = null;
+}
+
+// 繪製測驗結果。
+function drawResult() {
+  // 設定結果標題顏色。
+  fill("#FFFFFF");
+
+  // 繪製結果標題。
+  drawMixedText(
+    "測驗完成！",
+    width / 2,
+    height * 0.32,
+    min(50, width * 0.09)
+  );
+
+  // 設定分數顏色。
+  fill("#F7B1B0");
+
+  // 建立分數文字。
+  const resultText =
+    "你答對了 " +
+    score +
+    "／" +
+    questions.length +
+    " 題";
+
+  // 繪製分數文字。
+  drawMixedText(
+    resultText,
+    width / 2,
+    height * 0.47,
+    min(38, width * 0.07)
+  );
+
+  // 設定提示文字顏色。
+  fill("#B7C7D9");
+
+  // 繪製結果提示。
+  drawMixedText(
+    "感謝完成 p5.js 指令測驗！",
+    width / 2,
+    height * 0.58,
+    min(24, width * 0.045)
+  );
+}
+
+// 判斷座標是否位於指定區域。
+function isPointInside(pointX, pointY, area) {
+  // 回傳座標是否位於矩形內。
+  return (
+    pointX >= area.x &&
+    pointX <= area.x + area.width &&
+    pointY >= area.y &&
+    pointY <= area.y + area.height
+  );
+}
+
+// 當視窗大小改變時重新調整畫布。
+function windowResized() {
+  // 重新調整畫布尺寸。
+  resizeCanvas(windowWidth, windowHeight);
+
+  // 重新計算響應式版面。
+  calculateLayout();
+}
