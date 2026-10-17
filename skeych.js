@@ -1,6 +1,6 @@
 // 設定 Google 試算表 CSV 題庫網址。
 const GOOGLE_SHEET_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRylptFGO3-UT8aOlZ80Gzw3rd0dJjzs_TME0ZqQibfUS3bMKTsoK9AdC_7OE-v8PxJDOCUH39dJhYc/pub?gid=1116003502&single=true&output=csv";
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTYBm9qHcmJVwckrOF34kgahocr6q9UcovjnS8hAHWa6e8vrmURZZwlPOuiWiT-k_XY71xTWuePP5qa/pub?gid=649624692&single=true&output=csv";
 
 // 設定每次測驗抽出的題目數量。
 const QUIZ_LENGTH = 5;
